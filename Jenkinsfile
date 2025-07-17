@@ -1,29 +1,41 @@
 pipeline {
-  agent any
+    agent any
 
-  stages {
-    stage('Install Dependencies') {
-      steps {
-        sh 'npm install'
-      }
+    environment {
+        IMAGE_NAME = 'react-frontend-image'
     }
 
-    stage('Build React App') {
-      steps {
-        sh 'npm run build'
-      }
-    }
+    stages {
+        stage('Install Dependencies') {
+            steps {
+                dir('frontend') {
+                    echo '📦 Installing React dependencies...'
+                    sh 'npm install'
+                }
+            }
+        }
 
-    stage('Build Docker Image') {
-      steps {
-        sh 'docker build -t my-react-app .'
-      }
-    }
+        stage('Build React App') {
+            steps {
+                dir('frontend') {
+                    echo '🛠️ Building React app...'
+                    sh 'npm run build'
+                }
+            }
+        }
 
-    stage('Run Docker Container') {
-      steps {
-        sh 'docker run -d -p 3000:80 --name react-container my-react-app'
-      }
+        stage('Docker Build') {
+            steps {
+                echo '🐳 Building Docker image...'
+                sh 'docker build -t $IMAGE_NAME ./frontend'
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                echo '🚀 Running Docker container...'
+                sh 'docker run -d -p 3000:3000 $IMAGE_NAME'
+            }
+        }
     }
-  }
 }
